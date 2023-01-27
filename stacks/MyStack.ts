@@ -1,12 +1,44 @@
-import { NextjsSite, StackContext, Table } from "@serverless-stack/resources";
+import {
+  Api,
+  NextjsSite,
+  StackContext,
+  Table,
+  Cognito,
+  Auth,
+} from "@serverless-stack/resources";
 
 export function MyStack({ stack, app }: StackContext) {
   // Create the table
-  const table = new Table(stack, "Counter", {
+  const usersTable = new Table(stack, "users", {
     fields: {
-      counter: "string",
+      email: "string",
+      id: "string",
+      name: "string",
     },
-    primaryIndex: { partitionKey: "counter" },
+    primaryIndex: { partitionKey: "id" },
+  });
+
+  const auth = new Cognito(stack, "Auth", {
+    login: ["email"],
+  });
+
+  const apiProfile = new Api(stack, "Api", {
+    defaults: {
+      authorizer: "iam",
+    },
+    cors: {
+      allowCredentials: true,
+      allowHeaders: ["content-type"],
+      allowMethods: ["ANY"],
+      allowOrigins: ["http://localhost:3000/"],
+    },
+    routes: {
+      "POST /profile/update": "functions/profile.update",
+      "GET /profile": {
+        function: "functions/profile.get",
+        authorizer: "none",
+      },
+    },
   });
 
   // Create a Next.js site
@@ -15,15 +47,20 @@ export function MyStack({ stack, app }: StackContext) {
     environment: {
       // Pass the table details to our app
       REGION: app.region,
-      TABLE_NAME: table.tableName,
+      TABLE_NAME: usersTable.tableName,
     },
   });
 
   // Allow the Next.js API to access the table
-  site.attachPermissions([table]);
+  site.attachPermissions([usersTable]);
+  apiProfile.attachPermissions([usersTable]);
 
   // Show the site URL in the output
   stack.addOutputs({
     URL: site.url,
+    ApiEndpoint: apiProfile.url,
+    UserPoolId: auth.userPoolId,
+    IdentityPoolId: auth.cognitoIdentityPoolId,
+    UserPoolClientId: auth.userPoolClientId,
   });
 }
