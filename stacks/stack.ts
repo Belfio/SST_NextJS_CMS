@@ -49,14 +49,14 @@ export function ExampleStack({ stack }: StackContext) {
         type: "lambda",
         responseTypes: ["simple"],
         function: new Function(stack, "Authorizer", {
-          handler: "packages/functions/src/authoriser.main",
+          handler: "packages/functions/src/authoriser.handler",
           bind: [auth],
         }),
       },
     },
     routes: {
       "GET /": "packages/functions/src/auth.handler",
-      "GET /session": "packages/functions/src/session.handler",
+      "GET /session": "packages/functions/src/users.getUser",
       "GET /poba": "packages/functions/src/session.poba",
     },
   });

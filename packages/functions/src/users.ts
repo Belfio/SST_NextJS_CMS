@@ -1,10 +1,10 @@
-import { Table } from "sst/node/table";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { ApiHandler } from "sst/node/api";
 import { useSession } from "sst/node/auth";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-export const handler = ApiHandler(async () => {
+export const getUser = ApiHandler(async () => {
   const session = useSession();
 
   // Check user is authenticated
@@ -21,19 +21,8 @@ export const handler = ApiHandler(async () => {
       }),
     })
   );
-  // console.log("Session/", data.Item);
   return {
     statusCode: 200,
     body: JSON.stringify(unmarshall(data.Item!)),
-  };
-});
-
-export const poba = ApiHandler(async (event) => {
-  const session = useSession();
-
-  console.log("POBA");
-  return {
-    statusCode: 200,
-    body: JSON.stringify("Poba"),
   };
 });

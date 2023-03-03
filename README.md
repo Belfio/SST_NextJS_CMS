@@ -23,6 +23,9 @@
    1. Le credenziali di accesso a tempo per la API si chiamano session keys e vengono date dal mio servizio al client cosí che il client possa usare le API private. Queste session key hanno normalmente una durata limitata per sicurezza.
       Si accede alle api protette tramite un url e una session key. La session key, spesso in formato jwt, è una chiave criptata (che quindi può avere una secret key associata). La session key viene generata utilizzando id_token e access_token che contengono tutti le infomrazioni necessarie per la creazione della session_key.
 
+   1. Io ho aggiunto un authoriser rispetto all'esempio dato da SST cosi che tutte le API possano essere sicure
+   1. Vorrei anche creare un servizio di email/psw eventually.
+
 1. Permettere il pagamento
 1. Avere un database del profilo utente
 1. Avere una API con una serie di lambda e serverless services che lavorino per operations e business logic (https://blog.theodo.com/2023/02/state-machine-sst/)

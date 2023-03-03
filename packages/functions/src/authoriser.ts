@@ -1,7 +1,8 @@
 import { ApiHandler } from "sst/node/api";
 import { useSession } from "sst/node/auth";
 
-export const main = ApiHandler(async () => {
+export const handler = ApiHandler(async () => {
+  // Is there a Session at all?
   let session;
   try {
     session = useSession();
@@ -14,9 +15,7 @@ export const main = ApiHandler(async () => {
     };
   }
 
-  console.log("AUTHORISERRRR", session);
-
-  // Check user is authenticated
+  // Is the session valid? Do we have such user? Does the user have the right role?
   if (session.type !== "user") {
     return {
       isAuthorized: false,
@@ -26,6 +25,7 @@ export const main = ApiHandler(async () => {
     };
   }
 
+  // All good!
   return {
     isAuthorized: true,
     context: {
