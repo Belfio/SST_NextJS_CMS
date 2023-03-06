@@ -9,15 +9,17 @@ import {
 
 export function ExampleStack({ stack }: StackContext) {
   // Create a database Table
-  const table = new Table(stack, "profiles", {
+  const table = new Table(stack, "user", {
     fields: {
       tenantId: "string",
       email: "string",
       userId: "string",
+      role: "string",
     },
-    primaryIndex: { partitionKey: "email", sortKey: "tenantId" },
+    primaryIndex: { partitionKey: "email" },
     globalIndexes: {
-      GSI1: { partitionKey: "userId", sortKey: "email" },
+      GSI1: { partitionKey: "role", sortKey: "email" },
+      GSI2: { partitionKey: "role", sortKey: "userId" },
     },
   });
 
