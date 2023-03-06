@@ -11,7 +11,8 @@ export const handler = ApiHandler(async () => {
     return {
       isAuthorized: false,
       context: {
-        username: "",
+        email: "",
+        userId: "",
       },
     };
   }
@@ -21,7 +22,8 @@ export const handler = ApiHandler(async () => {
     return {
       isAuthorized: false,
       context: {
-        username: "",
+        userId: "",
+        email: "",
       },
     };
   }
@@ -30,7 +32,8 @@ export const handler = ApiHandler(async () => {
   return {
     isAuthorized: true,
     context: {
-      username: session.properties.userID,
+      email: session.properties.email,
+      userId: session.properties.userId,
     },
     evt: {},
     ctx: {},

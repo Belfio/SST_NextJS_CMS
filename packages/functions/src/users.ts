@@ -1,4 +1,5 @@
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { ddb } from "./lib/dynamo";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 import { Table } from "sst/node/table";
@@ -6,44 +7,34 @@ import { Table } from "sst/node/table";
 import { ApiHandler } from "sst/node/api";
 import { useSession } from "sst/node/auth";
 
-const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-east-1" });
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
-export const getUser = ApiHandler(async () => {
+export const getUser = ApiHandler(async (context) => {
+  // Check user is authenticated and get the email
   const session = useSession();
-
-  // Check user is authenticated
   if (session.type !== "user") {
     throw new Error("Not authenticated");
   }
 
-  const ddb = new DynamoDBClient({});
-  // const data = await ddb.send(
-  //   new GetItemCommand({
-  //     TableName: Table.profiles.tableName,
-  //     Key: marshall({
-  //       userId: session.properties.userID,
-  //     }),
-  //   })
-  // );
+  // Set the parameters for the get function
+  const params = {
+    TableName: Table.user.tableName,
+    Key: marshall({
+      email: session.properties.email,
+    }),
+  };
 
-  let user;
-  dynamoDB
-    .get({
-      TableName: Table.profiles.tableName,
-      Key: {
-        // email: claims.email,
-        tenantId: session.properties.userID,
-      },
-    })
-    .promise()
-    .then((data) => {
-      console.log(data.Item);
-      user = data;
-      return {
-        statusCode: 200,
-        body: JSON.stringify(unmarshall(user)),
-      };
-    });
+  const data = await ddb.send(new GetItemCommand(params));
+
+  console.log(data);
+  if (!data.Item) {
+    console.log("Problema");
+    return {
+      statusCode: 403,
+      body: "tenemmo u problema",
+    };
+  }
+  const user = data.Item;
+  return {
+    statusCode: 200,
+    body: JSON.stringify(unmarshall(user)),
+  };
 });
