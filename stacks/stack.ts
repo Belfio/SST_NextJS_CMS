@@ -9,11 +9,16 @@ import {
 
 export function ExampleStack({ stack }: StackContext) {
   // Create a database Table
-  const table = new Table(stack, "users", {
+  const table = new Table(stack, "profiles", {
     fields: {
+      tenantId: "string",
+      email: "string",
       userId: "string",
     },
-    primaryIndex: { partitionKey: "userId" },
+    primaryIndex: { partitionKey: "email", sortKey: "tenantId" },
+    globalIndexes: {
+      GSI1: { partitionKey: "userId", sortKey: "email" },
+    },
   });
 
   // Create a React site

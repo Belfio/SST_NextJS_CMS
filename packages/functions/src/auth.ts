@@ -5,9 +5,16 @@ import {
   LinkAdapter,
 } from "sst/node/auth";
 import { Table } from "sst/node/table";
-import { StaticSite } from "sst/node/site";
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { TokenSet } from "openid-client";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
+const AWS = require("aws-sdk");
+AWS.config.update({ region: "us-east-1" });
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 const GOOGLE_CLIENT_ID =
   "962898175553-jv8vbefsu4lha7hbopg4tu7bsc7j20ke.apps.googleusercontent.com";
@@ -29,30 +36,7 @@ export const handler = AuthHandler({
       clientSecret: GOOGLE_CLIENT_SECRET,
       scope: "email",
       prompt: "consent",
-      onSuccess: async (tokenset) => {
-        const claims = tokenset.claims();
-        console.log("Sino a qua sta andando", claims);
-        const ddb = new DynamoDBClient({});
-        await ddb.send(
-          new PutItemCommand({
-            TableName: Table.users.tableName,
-            Item: marshall({
-              userId: claims.sub,
-              email: claims.email,
-              // picture: claims.picture,
-              // name: claims.given_name,
-            }),
-          })
-        );
-
-        return Session.parameter({
-          redirect: "http://localhost:3000/",
-          type: "user",
-          properties: {
-            userID: claims.sub,
-          },
-        });
-      },
+      onSuccess: async (tokenset) => onSuccessLogin(tokenset),
     }),
     link: LinkAdapter({
       onLink: async (link, claims) => {
@@ -66,15 +50,7 @@ export const handler = AuthHandler({
           body: link,
         };
       },
-      onSuccess: async (claims) => {
-        return {
-          statusCode: 200,
-          headers: {
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify(claims),
-        };
-      },
+      onSuccess: async (tokenset) => onSuccessLogin(<TokenSet>tokenset),
 
       onError: async () => {
         return {
@@ -88,3 +64,54 @@ export const handler = AuthHandler({
     }),
   },
 });
+
+const onSuccessLogin = async (tokenset: TokenSet) => {
+  const claims = tokenset.claims();
+  const ddb = new DynamoDBClient({});
+  console.log("Claims:", claims);
+  let user;
+  // 1. Control that the user exists in our database and in case provide the session token
+  dynamoDB
+    .get({
+      TableName: Table.profiles.tableName,
+      Key: {
+        tenantId: claims.sub,
+      },
+    })
+    .promise()
+    .then((data) => {
+      console.log(data.Item);
+      user = data;
+    })
+    .catch(console.error);
+
+  if (!user) {
+    // 2. Control that the user can signup to our service otherwise send a forbidden message
+    // if (claims.email in whitelist)
+
+    // 3. Create a new user and provide the session token
+
+    // Sign in up
+
+    dynamoDB
+      .put({
+        Item: {
+          tenantId: claims.sub, //primary key
+          userId: "sdlifuhlaskdhf", // create a unique 16 characters id - secondary key
+          email: claims.email, //third key ideally - chekc how to do it with Dynamo!! YEEEEEEEE
+        },
+        TableName: Table.profiles.tableName,
+      })
+      .promise()
+      .then((data) => console.log(data.Attributes))
+      .catch(console.error);
+
+    return Session.parameter({
+      redirect: "http://localhost:3000/",
+      type: "user",
+      properties: {
+        userID: claims.sub,
+      },
+    });
+  }
+};

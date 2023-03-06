@@ -6,6 +6,7 @@ export const handler = ApiHandler(async () => {
   let session;
   try {
     session = useSession();
+    console.log("Session:", session);
   } catch (error) {
     return {
       isAuthorized: false,
@@ -29,7 +30,9 @@ export const handler = ApiHandler(async () => {
   return {
     isAuthorized: true,
     context: {
-      username: "user",
+      username: session.properties.userID,
     },
+    evt: {},
+    ctx: {},
   };
 });
