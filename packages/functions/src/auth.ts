@@ -10,6 +10,7 @@ import { GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import { ddb } from "./lib/dynamo";
+import { httpResponse } from "./lib/http";
 
 const GOOGLE_CLIENT_ID =
   "962898175553-jv8vbefsu4lha7hbopg4tu7bsc7j20ke.apps.googleusercontent.com";
@@ -52,13 +53,7 @@ export const handler = AuthHandler({
       onSuccess: async (tokenset) => onSuccessLogin(tokenset as TokenSet),
 
       onError: async () => {
-        return {
-          statusCode: 403,
-          headers: {
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify("error"),
-        };
+        return httpResponse(403, "Auth error: something went wrong");
       },
     }),
   },

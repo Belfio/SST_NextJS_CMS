@@ -7,13 +7,14 @@ import {
   Function,
 } from "sst/constructs";
 
-export function ExampleStack({ stack }: StackContext) {
+export function AuthStack({ stack }: StackContext) {
   // Create a database Table
   const table = new Table(stack, "user", {
     fields: {
       tenantId: "string",
       email: "string",
       userId: "string",
+      userName: "string",
       role: "string",
     },
     primaryIndex: { partitionKey: "email" },
@@ -44,7 +45,7 @@ export function ExampleStack({ stack }: StackContext) {
   });
 
   // Create Api
-  const api = new Api(stack, "api", {
+  const api = new Api(stack, "authApi", {
     defaults: {
       function: {
         bind: [table],
@@ -56,7 +57,7 @@ export function ExampleStack({ stack }: StackContext) {
         type: "lambda",
         responseTypes: ["simple"],
         function: new Function(stack, "Authorizer", {
-          handler: "packages/functions/src/authoriser.handler",
+          handler: "packages/functions/src/authoriser.user",
           bind: [auth],
         }),
       },
