@@ -50,7 +50,7 @@ export function ContentStack({ stack }: StackContext) {
   });
 
   // Create Api
-  const apiAdmin = new Api(stack, "apiContentAdmin", {
+  const apiPost = new Api(stack, "apiPost", {
     defaults: {
       function: {
         bind: [tableAdminContent],
@@ -92,7 +92,7 @@ export function ContentStack({ stack }: StackContext) {
     },
   });
 
-  const apiUser = new Api(stack, "apiContentUser", {
+  const apiContentUser = new Api(stack, "apiContentUser", {
     defaults: {
       function: {
         bind: [tableUserContent],
@@ -115,7 +115,7 @@ export function ContentStack({ stack }: StackContext) {
     },
   });
 
-  const apiPublic = new Api(stack, "apiContentPublic", {
+  const apiContentPublic = new Api(stack, "apiContentPublic", {
     defaults: {
       function: {
         bind: [tableUserContent, tableAdminContent],
@@ -129,8 +129,8 @@ export function ContentStack({ stack }: StackContext) {
 
   // Show the API endpoint and other info in the output
   stack.addOutputs({
-    UserContentApiEndpoint: apiUser.url,
-    AdminContentApiEndpoint: apiAdmin.url,
-    PublicContentApiEndpoint: apiPublic.url,
+    UserContentApiEndpoint: apiContentUser.url,
+    AdminContentApiEndpoint: apiPost.url,
+    PublicContentApiEndpoint: apiContentPublic.url,
   });
 }
